@@ -80,6 +80,8 @@ typedef struct TFunDef{			// function name, parameters and definition
  	char *name;
 	int nbparameters;
 	PParamList parameters;
+	int nblocal_vars;
+	PParamList local_vars;
  	PExp definition;
  	} *PFunDef;
  

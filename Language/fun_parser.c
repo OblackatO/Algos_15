@@ -157,6 +157,46 @@ PExp def;
 		error = 7;
 		goto end_fundef;
 	}
+
+	/*Local vars code starts here*/
+	if ((s = nextSymbol()) == sy_error){
+		goto end_fundef;
+	}
+	if (s != sy_openpar){
+		error = 6;
+		goto end_fundef;
+	}
+	nbparam = 0;
+	while (TRUE){
+		if ((s = nextSymbol()) == sy_error){
+			goto end_fundef;
+		}
+		if (s != sy_ident){
+			break;
+		}
+		nbparam++;
+		param2 = (PParamList) malloc(sizeof(struct TParamList));
+		paraname = newIdentifierFromBuffer();
+		if (findVarParametersList(paraname,fundef->local_vars)) {
+			error = 22;
+			goto end_fundef;
+		}
+		param2->name = paraname;
+		param2->next = NULL;
+		if (nbparam == 1){
+			fundef->local_vars = param2;
+		} else {
+			param1->next = param2;
+		}
+		param1 = param2;
+	}
+	fundef->nblocal_vars = nbparam;
+	if (s != sy_closepar){
+		error = 7;
+		goto end_fundef;
+	}
+	/*local vars code ends here*/
+
 	if ((s = nextSymbol()) == sy_error){
 		goto end_fundef;
 	}

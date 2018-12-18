@@ -22,7 +22,8 @@ PFunDefList flist;
 		return FALSE;
 	}
 	definitions = setFunctionDefinition(f,definitions);
-	printf("\nfunction '%s(%i)' is defined\n",f->name,f->nbparameters);
+	printf("\nfunction '%s(%i) (%i)' is defined\n",f->name,f->nbparameters, f->nblocal_vars);
+	//printf("\nfunction '%s(%i)' is defined\n",f->name,f->nbparameters);
 	return TRUE;
 }
 

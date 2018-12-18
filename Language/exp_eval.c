@@ -211,6 +211,15 @@ PVar v;
 		opd = opd->nextopd;
 		param = param->next;
 	}
+	/*While loop for local variables starts here*/
+	np = 1;
+	param = fundef->local_vars;
+	while ((np <= fundef->nblocal_vars) && (error == 0)){
+		mem->env = bindVarEnv(param->name,0,mem->env);
+		np++;
+		param = param->next;
+	}
+	/*********ends here****************************/
 	if (error == 0){
 		res = evalExpression(fundef->definition,mem);
 	}
