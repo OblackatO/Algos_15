@@ -13,7 +13,25 @@ BY "typedef struct TFunDef{
  	PExp definition;
  	} *PFunDef "
 
-
+/*command.c*/
+REPLACED " boolean functionDefinition(){...}"
+BY " boolean functionDefinition()
+ {
+ TSymbol s;
+ PFunDef f;
+ PFunDefList flist;
+ 
+ 	if ((s = nextSymbol()) == sy_error){
+ 		return FALSE;
+ 	}
+ 	if ((f = buildFunctionDefinition(s)) == NULL){
+		return FALSE;
+	}
+	definitions = setFunctionDefinition(f,definitions);
+	printf("\nfunction '%s(%i) (%i)' is defined\n",f->name,f->nbparameters, f->nblocal_vars); //REPLACEMENT HERE
+	return TRUE;
+}
+"
 
 /* exp_eval.c */
 REPLACED "int evalFunCallExp(exp,mem)
