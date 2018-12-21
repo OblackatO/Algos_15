@@ -11,7 +11,7 @@ BY 25         "printf("\nfunction '%s(%i) (%i)' is defined\n",f->name,f->nbparam
 
 ADDED 214     "/*While loop for local variables starts here*/
               np = 1;
-              param = fundef->local_vars; 
+              param = fundef->local_vars;
               while ((np <= fundef->nblocal_vars) && (error == 0)){
                 mem->env = bindVarEnv(param->name,0,mem->env);
 		            np++;
@@ -20,6 +20,14 @@ ADDED 214     "/*While loop for local variables starts here*/
 	            /*********ends here****************************/"
 
 /* fun_parser.c */
+
+ADDED 37    "if (funDef->local_vars != NULL){
+		          clearParameters(funDef->local_vars);
+	            }"
+
+ADDED 56    "fundef->nblocal_vars = 0;
+	             fundef->local_vars = NULL; "
+
 
 ADDED 160    "/*Local vars code starts here*/
 	           if ((s = nextSymbol()) == sy_error){
