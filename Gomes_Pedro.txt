@@ -130,7 +130,7 @@ BY " PFunDef newFunctionDefinition()
 
 REPLACED "PFunDef buildFunctionDefinition(firstSymbol)
  		 TSymbol firstSymbol;
- 		{ ... }
+ 		{ ... }""
 BY "PFunDef buildFunctionDefinition(firstSymbol)
  TSymbol firstSymbol;
  {
@@ -233,12 +233,4 @@ BY "PFunDef buildFunctionDefinition(firstSymbol)
 		goto end_fundef;
 	}
 "
-
-
-
-
 ---end---
-
-if (funDef->local_vars != NULL){
-		clearParameters(funDef->local_vars);
-	}
