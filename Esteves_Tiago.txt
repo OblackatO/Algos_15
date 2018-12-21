@@ -1,0 +1,69 @@
+--- begin ---
+
+NAME: Esteves Tiago
+
+/* command.c */
+
+REPLACED 25   "printf("\nfunction '%s(%i)' is defined\n",f->name,f->nbparameters);"
+BY 25         "printf("\nfunction '%s(%i) (%i)' is defined\n",f->name,f->nbparameters, f->nblocal_vars);"
+
+/* exp_eval.c */
+
+ADDED 214     "/*While loop for local variables starts here*/
+              np = 1;
+              param = fundef->local_vars; 
+              while ((np <= fundef->nblocal_vars) && (error == 0)){
+                mem->env = bindVarEnv(param->name,0,mem->env);
+		            np++;
+		            param = param->next;
+	            }
+	            /*********ends here****************************/"
+
+/* fun_parser.c */
+
+ADDED 160    "/*Local vars code starts here*/
+	           if ((s = nextSymbol()) == sy_error){
+		           goto end_fundef;
+	           }
+	           if (s != sy_openpar){
+		           error = 6;
+		           goto end_fundef;
+	           }
+	           nbparam = 0;
+	           while (TRUE){
+		           if ((s = nextSymbol()) == sy_error){
+			            goto end_fundef;
+		           }
+		           if (s != sy_ident){
+			            break;
+		           }
+		           nbparam++;
+		           param2 = (PParamList) malloc(sizeof(struct TParamList));
+		           paraname = newIdentifierFromBuffer();
+		           if (findVarParametersList(paraname,fundef->local_vars)) {
+			            error = 22;
+			            goto end_fundef;
+		              }
+		           param2->name = paraname;
+		           param2->next = NULL;
+		           if (nbparam == 1){
+			            fundef->local_vars = param2;
+		           } else {
+			            param1->next = param2;
+		           }
+		           param1 = param2;
+	           }
+	           fundef->nblocal_vars = nbparam;
+	           if (s != sy_closepar){
+		           error = 7;
+		           goto end_fundef;
+	           }
+	           /*local vars code ends here*/"
+
+/* L-interpreter.h */
+
+ADDED 83    "int nblocal_vars;
+	          PParamList local_vars;"
+
+
+---end---
