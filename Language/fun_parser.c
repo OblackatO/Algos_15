@@ -26,6 +26,8 @@ PParamList nextparam;
 	}
 }
 
+
+
 void clearFunDef(funDef)
 PFunDef funDef;
 {
@@ -34,6 +36,9 @@ PFunDef funDef;
 	}
 	if (funDef->parameters != NULL){
 		clearParameters(funDef->parameters);
+	}
+	if (funDef->local_vars != NULL){
+		clearParameters(funDef->local_vars);
 	}
 	if (funDef->definition != NULL){
 		clearExpression(funDef->definition);
@@ -51,6 +56,8 @@ PFunDef fundef;
 	fundef->name = NULL;
 	fundef->nbparameters = 0;
 	fundef->parameters = NULL;
+	fundef->nblocal_vars = 0;
+	fundef->local_vars = NULL;
 	fundef->definition = NULL;
 	return fundef;
 }
@@ -80,7 +87,7 @@ PFunDefList node;
 		}
 		node = node->next;
 	}
-	return NULL;	
+	return NULL;
 }
 
 boolean findVarParametersList(varname, list)
@@ -96,7 +103,7 @@ PParamList list;
 		}
 		var = var->next;
 	}
-	return FALSE;	
+	return FALSE;
 }
 
 PFunDef buildFunctionDefinition(firstSymbol)
