@@ -1,0 +1,226 @@
+--- begin ---
+
+NAME: Gomes Pedro 
+
+/* L-interpreter.h */
+REPLACED "typedef struct TFunDef{...} *PFunDef "
+BY "typedef struct TFunDef{			
+ 	char *name;
+	int nbparameters;
+	PParamList parameters;
+	int nblocal_vars; //new var
+	PParamList local_vars; //new var
+ 	PExp definition;
+ 	} *PFunDef "
+
+
+
+/* exp_eval.c */
+REPLACED "int evalFunCallExp(exp,mem)
+		  PExp exp;
+ 		PEnvList mem;{ ... }"
+BY "int evalFunCallExp(exp,mem)
+ PExp exp;
+ PEnvList mem;
+ {
+ int res;
+ char *name;
+ PFunDef fundef;
+ PEnvList oldmem;
+ int np;
+ POpdList opd;
+ PParamList param;
+ int arg;
+ PVar v;
+ 
+ 	res = 0;
+ 	opd = exp->operands;
+ 	name = opd->charopd;
+ 	if ((fundef = getFunctionDefinition(name,definitions)) == NULL){
+ 		error = 31;
+ 		return res;
+ 	}
+ 	oldmem = mem;
+ 	mem = addNewFirstEnvironment(oldmem);
+ 	np = 1;
+ 	opd = opd->nextopd;
+ 	param = fundef->parameters;
+ 	while ((np <= fundef->nbparameters) && (error == 0)){
+ 		if (opd == NULL){
+ 			error = 32;
+ 			continue;
+ 		}
+ 		arg = evalExpression(opd->expopd,oldmem);
+ 		mem->env = bindVarEnv(param->name,arg,mem->env);
+ 		np++;
+		opd = opd->nextopd;
+		param = param->next;
+	}
+	/*While loop for local variables starts here*/
+	np = 1;
+	param = fundef->local_vars;
+	while ((np <= fundef->nblocal_vars) && (error == 0)){
+		mem->env = bindVarEnv(param->name,0,mem->env);
+		np++;
+		param = param->next;
+	}
+	/*********ends here****************************/
+	if (error == 0){
+		res = evalExpression(fundef->definition,mem);
+	}
+"
+
+
+/* fun_parser.c */
+REPLACED "void clearFunDef(funDef)
+			PFunDef funDef;
+			{...}"
+BY "void clearFunDef(funDef)
+	PFunDef funDef;
+	{
+ 		if (funDef->name != NULL){
+ 			free(funDef->name);
+ 		}
+		if (funDef->parameters != NULL){
+			clearParameters(funDef->parameters);
+		}
+		if (funDef->local_vars != NULL){
+			clearParameters(funDef->local_vars);
+		}
+		if (funDef->definition != NULL){
+			clearExpression(funDef->definition);
+		}
+ 		free(funDef);
+ 	}
+ "
+
+REPLACED " PFunDef newFunctionDefinition(){...}"
+BY " PFunDef newFunctionDefinition()
+ 	{
+	PFunDef fundef;
+ 
+ 	fundef = (PFunDef) malloc(sizeof(struct TFunDef));
+	fundef->name = NULL;
+	fundef->nbparameters = 0;
+	fundef->parameters = NULL;
+	fundef->nblocal_vars = 0;
+	fundef->local_vars = NULL;
+	fundef->definition = NULL;
+	return fundef;
+}"
+
+
+REPLACED "PFunDef buildFunctionDefinition(firstSymbol)
+ 		 TSymbol firstSymbol;
+ 		{ ... }
+BY "PFunDef buildFunctionDefinition(firstSymbol)
+ TSymbol firstSymbol;
+ {
+ TSymbol s;
+ PFunDef fundef;
+ char *funcname;
+ char *paraname;
+ int nbparam;
+ PParamList param1,param2;
+ PExp def;
+ 
+ 	fundef = newFunctionDefinition();
+ 	if (firstSymbol != sy_ident){
+ 		error = 4;
+ 		goto end_fundef;
+ 	}
+ 	funcname = newIdentifierFromBuffer();
+ 	if (getFunctionDefinition(funcname,definitions) != NULL){
+ 		error = 21;
+ 		goto end_fundef;
+ 	}
+ 	fundef->name = funcname;
+ 	if ((s = nextSymbol()) == sy_error){
+ 		goto end_fundef;
+ 	}
+ 	if (s != sy_openpar){
+ 		error = 6;
+ 		goto end_fundef;
+ 	}
+ 	nbparam = 0;
+ 	while (TRUE){
+ 		if ((s = nextSymbol()) == sy_error){
+ 			goto end_fundef;
+ 		}
+ 		if (s != sy_ident){
+ 			break;
+ 		}
+ 		nbparam++;
+ 		param2 = (PParamList) malloc(sizeof(struct TParamList));
+ 		paraname = newIdentifierFromBuffer();
+ 		if (findVarParametersList(paraname,fundef->parameters)) {
+ 			error = 22;
+ 			goto end_fundef;
+ 		}
+ 		param2->name = paraname;
+ 		param2->next = NULL;
+ 		if (nbparam == 1){
+ 			fundef->parameters = param2;
+ 		} else {
+ 			param1->next = param2;
+ 		}
+ 		param1 = param2;
+ 	}
+ 	fundef->nbparameters = nbparam;
+ 	if (s != sy_closepar){
+		error = 7;
+		goto end_fundef;
+	}
+
+	/*Local vars code is handled here*/
+	if ((s = nextSymbol()) == sy_error){
+		goto end_fundef;
+	}
+	if (s != sy_openpar){
+		error = 6;
+		goto end_fundef;
+	}
+	nbparam = 0;
+	while (TRUE){
+		if ((s = nextSymbol()) == sy_error){
+			goto end_fundef;
+		}
+		if (s != sy_ident){
+			break;
+		}
+		nbparam++;
+		param2 = (PParamList) malloc(sizeof(struct TParamList));
+		paraname = newIdentifierFromBuffer();
+		if (findVarParametersList(paraname,fundef->local_vars)) {
+			error = 22;
+			goto end_fundef;
+		}
+		param2->name = paraname;
+		param2->next = NULL;
+		if (nbparam == 1){
+			fundef->local_vars = param2;
+		} else {
+			param1->next = param2;
+		}
+		param1 = param2;
+	}
+	fundef->nblocal_vars = nbparam;
+	if (s != sy_closepar){
+		error = 7;
+		goto end_fundef;
+	}
+	/*local vars code ends here*/
+
+	if ((s = nextSymbol()) == sy_error){
+		goto end_fundef;
+	}
+"
+
+
+
+
+---end---
+
+if (funDef->local_vars != NULL){
+		clearParameters(funDef->local_vars);
+	}
